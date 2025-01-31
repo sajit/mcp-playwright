@@ -4,11 +4,12 @@ export function createToolDefinitions(): Tool[] {
   return [
     {
       name: "playwright_navigate",
-      description: "Navigate to a URL",
+      description: "Navigate to a URL in a specified browser. Default browser is Chromium.",
       inputSchema: {
         type: "object",
         properties: {
           url: { type: "string" },
+          browser: { type: "string", description: "Browser to use (default: chromium)" },
           width: { type: "number", description: "Viewport width in pixels (default: 1920)" },
           height: { type: "number", description: "Viewport height in pixels (default: 1080)" },
           timeout: { type: "number", description: "Navigation timeout in milliseconds" },

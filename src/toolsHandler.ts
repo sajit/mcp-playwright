@@ -1,4 +1,4 @@
-import { chromium, Browser, Page, request, APIRequest, APIRequestContext } from "playwright";
+import { chromium, Browser, Page, request, APIRequest, APIRequestContext, webkit } from "playwright";
 import { CallToolResult, TextContent, ImageContent } from "@modelcontextprotocol/sdk/types.js";
 import { BROWSER_TOOLS, API_TOOLS } from "./tools.js";
 import fs from 'node:fs';
@@ -11,20 +11,28 @@ let page: Page | undefined;
 const consoleLogs: string[] = [];
 const screenshots = new Map<string, string>();
 const defaultDownloadsPath = path.join(os.homedir(), 'Downloads');
+let defaultBrowserConfig: BrowserConfiguration | undefined;
 
-// Viewport type definition
-type ViewportSize = {
+// browser config definition
+type BrowserConfiguration = {
+  browser?: string;
   width?: number;
   height?: number;
 };
 
-async function ensureBrowser(viewport?: ViewportSize) {
+async function ensureBrowser(browserConfig?: BrowserConfiguration) {
+  defaultBrowserConfig = browserConfig;
   if (!browser) {
-    browser = await chromium.launch({ headless: false });
+    if (browserConfig?.browser === 'webkit') {
+      browser = await webkit.launch({ headless: false });
+    } else {
+      browser = await chromium.launch({ headless: false, channel: browserConfig?.browser });
+    }
+    //browser = await chromium.launch({ headless: false, channel: browserConfig?.browser });
     const context = await browser.newContext({
       viewport: {
-        width: viewport?.width ?? 1920,
-        height: viewport?.height ?? 1080,
+        width: browserConfig?.width ?? 1920,
+        height: browserConfig?.height ?? 1080,
       },
       deviceScaleFactor: 1,
     });
@@ -61,6 +69,7 @@ export async function handleToolCall(
   // Only launch browser if the tool requires browser interaction
   if (requiresBrowser) {
     page = await ensureBrowser({
+      browser: args.browser || "chromium",
       width: args.width,
       height: args.height
     });
@@ -74,6 +83,13 @@ export async function handleToolCall(
   switch (name) {
     case "playwright_navigate":
       try {
+        if(args.browser) {
+          page = await ensureBrowser({
+            browser: args.browser,
+            width: defaultBrowserConfig?.width,
+            height: defaultBrowserConfig?.height
+          });
+        }
         await page!.goto(args.url, {
           timeout: args.timeout || 30000,
           waitUntil: args.waitUntil || "load"
