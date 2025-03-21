@@ -58,15 +58,24 @@ interface BrowserSettings {
     height?: number;
   };
   userAgent?: string;
+  channel?: string;
+  certificatePath?: string;
+  executablePath?: string;
 }
 
 /**
  * Ensures a browser is launched and returns the page
  */
 async function ensureBrowser(browserSettings?: BrowserSettings) {
+  
   if (!browser) {
-    const { viewport, userAgent } = browserSettings ?? {};
-    browser = await chromium.launch({ headless: false });
+    const { viewport, userAgent, channel, certificatePath, executablePath } = browserSettings ?? {};
+    browser = await chromium.launch({ 
+      headless: false, 
+      channel: channel ?? "chrome" , 
+      args: certificatePath ? ["--cert-import-path=" + certificatePath] : [] ,
+      ...(executablePath && { executablePath })
+    });
     const context = await browser.newContext({
       ...userAgent && { userAgent },
       viewport: {
@@ -147,7 +156,9 @@ export async function handleToolCall(
         width: args.width,
         height: args.height
       },
-      userAgent: name === "playwright_custom_user_agent" ? args.userAgent : undefined
+      userAgent: name === "playwright_custom_user_agent" ? args.userAgent : undefined,
+      channel: args.channel,
+      certificatePath: args.certificatePath
     };
     context.page = await ensureBrowser(browserSettings);
     context.browser = browser;

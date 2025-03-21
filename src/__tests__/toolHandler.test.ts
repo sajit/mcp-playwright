@@ -148,20 +148,35 @@ describe('Tool Handler', () => {
     jest.clearAllMocks();
   });
 
+  test('handleToolCall for channel & certificatePath', async () => {
+    const navigateResultEdge = await handleToolCall('playwright_navigate', {
+      url: 'https://example.com', 
+      channel: 'edge',
+      certificatePath: '/path/to/cert.pem'
+    }, mockServer);
+
+    expect(navigateResultEdge).toBeDefined();
+    expect(navigateResultEdge.content).toBeDefined();
+    expect(chromium.launch).toHaveBeenCalledWith({
+      headless: false,
+      channel: 'edge',
+      args: ['--cert-import-path=/path/to/cert.pem']
+    });
+  });
+
   test('handleToolCall should handle unknown tool', async () => {
     const result = await handleToolCall('unknown_tool', {}, mockServer);
     expect(result.isError).toBe(true);
     expect(result.content[0].text).toContain('Unknown tool');
   });
 
-  // In the actual implementation, the tools might succeed or fail depending on how the mocks are set up
-  // We'll just test that they complete without throwing exceptions
-  
   test('handleToolCall should handle browser tools', async () => {
     // Test a few representative browser tools
     const navigateResult = await handleToolCall('playwright_navigate', { url: 'https://example.com' }, mockServer);
     expect(navigateResult).toBeDefined();
     expect(navigateResult.content).toBeDefined();
+    
+   
     
     const screenshotResult = await handleToolCall('playwright_screenshot', { name: 'test-screenshot' }, mockServer);
     expect(screenshotResult).toBeDefined();
@@ -195,4 +210,5 @@ describe('Tool Handler', () => {
     const screenshots = getScreenshots();
     expect(screenshots instanceof Map).toBe(true);
   });
+
 }); 
