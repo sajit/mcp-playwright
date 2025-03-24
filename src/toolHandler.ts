@@ -32,6 +32,8 @@ import {
 let browser: Browser | undefined;
 let page: Page | undefined;
 let currentBrowserType: 'chromium' | 'firefox' | 'webkit' = 'chromium';
+let browserProfile: string | undefined;
+let browserExecutablePath: string | undefined;
 
 /**
  * Resets browser and page variables
@@ -41,6 +43,8 @@ export function resetBrowserState() {
   browser = undefined;
   page = undefined;
   currentBrowserType = 'chromium';
+  browserProfile = undefined;
+  browserExecutablePath = undefined;
 }
 
 // Tool instances
@@ -71,6 +75,8 @@ interface BrowserSettings {
   userAgent?: string;
   headless?: boolean;
   browserType?: 'chromium' | 'firefox' | 'webkit';
+  browserExecutablePath?: string;
+  browserUserProfile?: string;
 }
 
 /**
@@ -121,7 +127,15 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
           break;
       }
       
-      browser = await browserInstance.launch({ headless });
+      const browserArgs = browserSettings.browserUserProfile ? [`--user-data-dir=${browserProfile}`] : [];
+      browser = await browserInstance.launch({
+        headless,
+        executablePath: browserSettings.browserExecutablePath,
+        args: browserArgs
+      });
+     
+      
+    
       currentBrowserType = browserType;
 
       // Add cleanup logic when browser is disconnected
@@ -129,6 +143,8 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
         console.error("Browser disconnected event triggered");
         browser = undefined;
         page = undefined;
+        browserProfile = undefined;
+        browserExecutablePath = undefined;
       });
 
       const context = await browser.newContext({
@@ -328,7 +344,9 @@ export async function handleToolCall(
       },
       userAgent: name === "playwright_custom_user_agent" ? args.userAgent : undefined,
       headless: args.headless,
-      browserType: args.browserType || 'chromium'
+      browserType: args.browserType || 'chromium',
+      browserProfile: args.browserProfile,
+      browserExecutablePath: args.browserExecutablePath
     };
     
     try {
