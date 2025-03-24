@@ -130,6 +130,7 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
       const browserArgs = browserSettings.browserUserProfile ? [`--user-data-dir=${browserProfile}`] : [];
       browser = await browserInstance.launch({
         headless,
+        channel: browserSettings.browserUserProfile? "chrome": undefined,
         executablePath: browserSettings.browserExecutablePath,
         args: browserArgs
       });
