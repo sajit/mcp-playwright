@@ -76,7 +76,7 @@ interface BrowserSettings {
   headless?: boolean;
   browserType?: 'chromium' | 'firefox' | 'webkit';
   browserExecutablePath?: string;
-  browserUserProfile?: string;
+  userProfile?: string;
 }
 
 /**
@@ -84,6 +84,7 @@ interface BrowserSettings {
  */
 async function ensureBrowser(browserSettings?: BrowserSettings) {
   try {
+   
     // Check if browser exists but is disconnected
     if (browser && !browser.isConnected()) {
       console.error("Browser exists but is disconnected. Cleaning up...");
@@ -127,16 +128,15 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
           break;
       }
       
-      const browserArgs = browserSettings.browserUserProfile ? [`--user-data-dir=${browserProfile}`] : [];
+      const browserArgs = browserSettings.userProfile ? [`--user-data-dir=${browserSettings.userProfile}`] : [];
       browser = await browserInstance.launch({
         headless,
-        channel: browserSettings.browserUserProfile? "chrome": undefined,
+        channel: browserSettings.userProfile? "chrome": undefined,
         executablePath: browserSettings.browserExecutablePath,
         args: browserArgs
       });
-     
+  
       
-    
       currentBrowserType = browserType;
 
       // Add cleanup logic when browser is disconnected
@@ -346,9 +346,10 @@ export async function handleToolCall(
       userAgent: name === "playwright_custom_user_agent" ? args.userAgent : undefined,
       headless: args.headless,
       browserType: args.browserType || 'chromium',
-      browserProfile: args.browserProfile,
+      userProfile: args.userProfile,
       browserExecutablePath: args.browserExecutablePath
     };
+    
     
     try {
       context.page = await ensureBrowser(browserSettings);

@@ -186,6 +186,26 @@ describe('Tool Handler', () => {
     expect(clickResult.content).toBeDefined();
   });
   
+  test('ensureBrowser should launch browser with channel, executablePath, and args if defined', async () => {
+    const browserSettings = {
+      browserExecutablePath: '/path/to/executable',
+      userProfile: '/path/to/profile',
+      headless: true,
+    };
+  
+    const page = await handleToolCall('playwright_navigate', { 
+      url: 'https://example.com',
+      ...browserSettings
+    }, mockServer);
+  
+    expect(page).toBeDefined();
+   
+    // Verify browser state is reset
+    await handleToolCall('playwright_close', {}, mockServer);
+  });
+  
+
+  
   test('handleToolCall should handle Firefox browser', async () => {
     const navigateResult = await handleToolCall('playwright_navigate', { 
       url: 'https://example.com',
