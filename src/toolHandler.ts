@@ -43,8 +43,6 @@ export function resetBrowserState() {
   browser = undefined;
   page = undefined;
   currentBrowserType = 'chromium';
-  browserProfile = undefined;
-  browserExecutablePath = undefined;
 }
 
 // Tool instances
@@ -128,23 +126,19 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
           break;
       }
       
-      console.log("Browser settings:", JSON.stringify(browserSettings));
+      //console.log(browserSettings);
       
-      if(browserSettings.userProfile) {
-      
+      if (browserSettings.userProfile) {
         browser = await browserInstance.launchPersistentContext(browserSettings.userProfile, {
           headless,
           channel: "chrome",
-          executablePath: browserSettings.browserExecutablePath
+          ...(browserSettings.browserExecutablePath && { executablePath: browserSettings.browserExecutablePath })
         });
-
-      }
-      else {
+      } else {
         browser = await browserInstance.launch({
           headless,
-          executablePath: browserSettings.browserExecutablePath
+          ...(browserSettings.browserExecutablePath && { executablePath: browserSettings.browserExecutablePath })
         });
-    
       }
       
       
@@ -155,8 +149,6 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
         console.error("Browser disconnected event triggered");
         browser = undefined;
         page = undefined;
-        browserProfile = undefined;
-        browserExecutablePath = undefined;
       });
 
       const context = await browser.newContext({
