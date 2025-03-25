@@ -14,7 +14,9 @@ export function createToolDefinitions() {
           height: { type: "number", description: "Viewport height in pixels (default: 720)" },
           timeout: { type: "number", description: "Navigation timeout in milliseconds" },
           waitUntil: { type: "string", description: "Navigation wait condition" },
-          headless: { type: "boolean", description: "Run browser in headless mode (default: false)" }
+          headless: { type: "boolean", description: "Run browser in headless mode (default: false)" },
+          userProfile: { type: "string", description: "Path to user profile directory" },
+          browserExecutablePath: { type: "string", description: "Path to browser executable. Defaults to packaged browser executable if not specified" },
         },
         required: ["url"],
       },

@@ -128,14 +128,25 @@ async function ensureBrowser(browserSettings?: BrowserSettings) {
           break;
       }
       
-      const browserArgs = browserSettings.userProfile ? [`--user-data-dir=${browserSettings.userProfile}`] : [];
-      browser = await browserInstance.launch({
-        headless,
-        channel: browserSettings.userProfile? "chrome": undefined,
-        executablePath: browserSettings.browserExecutablePath,
-        args: browserArgs
-      });
-  
+      console.log("Browser settings:", JSON.stringify(browserSettings));
+      
+      if(browserSettings.userProfile) {
+      
+        browser = await browserInstance.launchPersistentContext(browserSettings.userProfile, {
+          headless,
+          channel: "chrome",
+          executablePath: browserSettings.browserExecutablePath
+        });
+
+      }
+      else {
+        browser = await browserInstance.launch({
+          headless,
+          executablePath: browserSettings.browserExecutablePath
+        });
+    
+      }
+      
       
       currentBrowserType = browserType;
 
